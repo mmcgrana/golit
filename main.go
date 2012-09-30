@@ -90,8 +90,7 @@ func main() {
     check(err)
     lines := strings.Split(string(srcBytes), "\n")
 
-    // Group lines into docs/code segments. First,
-    // special case the header to go in its own segment.
+    // Group lines into docs/code segments.
     segs := []*seg{}
     segs = append(segs, &seg{code: "", docs: ""})
     last := ""
