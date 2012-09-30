@@ -10,6 +10,8 @@ more information.
 
 ### Installation
 
+golit requires `markdow` and `pygmentize` binaries on the path.
+
 ```console
 $ go get github.com/mmcgrana/golit
 ```
