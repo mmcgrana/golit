@@ -1,7 +1,17 @@
 // ## golit
 
-// **golit** generates literate-programming style HTML
-// documentation from a Go source file.
+// **golit** generates literate-programming-style HTML documentation
+// for a Go source file. It produces HTML with comments alongside your
+// code. Comments are parsed through [Markdown](http://daringfireball.net/projects/markdown/syntax)
+// and code highlighted with [Pygments](http://pygments.org/).
+
+// golit is based on [docco](http://jashkenas.github.com/docco/)
+// and [shocco](http://rtomayko.github.com/shocco/), two earlier
+// programs in the same style.
+
+// This page is the result of running golit against its own source
+// file.
+
 package main
 
 import (
@@ -13,23 +23,25 @@ import (
     "strings"
 )
 
-// Recognize doc lines, extract their comment prefixes.
-var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
+// ### Usage
+//
+// `golit` takes exactly one argument: the path to a Go source file.
+// It writes the compiled HTML on stdout.
+var usage = "usage: golit input.go > output.html"
 
-// Recognize title prefixes, for titling web page.
-var titlePat = regexp.MustCompile("^\\/\\/\\s##\\s")
-
-// Abort on non-nil errors.
+// ### Helpers
+//
+// Panic on non-nil errors. We'll call this after every error-returning
+// function.
 func check(err error) {
     if err != nil {
         panic(err)
     }
 }
 
-// We'll implement Markdown rendering and Pygments
-// syntax highlighting by piping the source data through
-// external programs. This is a general helper for
-// handling both cases.
+// We'll implement Markdown rendering and Pygments syntax highlighting
+// by piping the source data through external programs. This is a
+// general helper for handling both cases.
 func pipe(bin string, arg []string, src string) string {
     cmd := exec.Command(bin, arg...)
     in, err := cmd.StdinPipe()
@@ -49,30 +61,36 @@ func pipe(bin string, arg []string, src string) string {
     return string(bytes)
 }
 
-// We'll break the code into {docs, code} pairs, and
-// then render those text segments before including them
-// in the HTML doc.
+// ### Rendering
+//
+// Recognize doc lines, extract their comment prefixes.
+var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
+
+// Recognize title prefixes, for titling web page.
+var titlePat = regexp.MustCompile("^\\/\\/\\s##\\s")
+
+// We'll break the code into `{docs, code}` pairs, and then render
+// those text segments before including them in the HTML doc.
 type seg struct {
     docs, code, docsRendered, codeRendered string
 }
 
 func main() {
-    // Accept exactly 1 argument - the input filename,
-    // less the .go extension.
+    // Accept exactly 1 argument.
     if len(os.Args) != 2 {
-        fmt.Fprintln(os.Stderr, "unexpected args")
+        fmt.Fprintln(os.Stderr, usage)
         os.Exit(1)
     }
 
-    // Ensure that we have `markdown` and `pygmentize`,
-    // binaries, remember their paths.
+    // Ensure that we have `markdown` and `pygmentize` binaries,
+    // remember their paths.
     markdownPath, err := exec.LookPath("markdown")
     check(err)
     pygmentizePath, err := exec.LookPath("pygmentize")
     check(err)
 
     // Read the source file in, split into lines.
-    srcBytes, err := ioutil.ReadFile(os.Args[1]+".go")
+    srcBytes, err := ioutil.ReadFile(os.Args[1])
     check(err)
     lines := strings.Split(string(srcBytes), "\n")
 
@@ -102,7 +120,7 @@ func main() {
                 head.docs = head.docs + "\n" + trimed
             }
             last = "docs"
-        // Code line - preserve all whitespace.
+            // Code line - preserve all whitespace.
         } else {
             if newCode {
                 newSeg := seg{docs: "", code: line}
@@ -114,17 +132,11 @@ func main() {
         }
     }
 
-    // Render docs via `markdown` and code via
-    // `pygmentize` in each segment.
+    // Render docs via `markdown` and code via `pygmentize` in each
+    // segment.
     for _, seg := range segs {
-        seg.docsRendered = pipe(
-            markdownPath,
-            []string{},
-            seg.docs)
-        seg.codeRendered = pipe(
-            pygmentizePath,
-            []string{"-l", "go", "-f", "html"},
-            seg.code+"  ")
+        seg.docsRendered = pipe(markdownPath, []string{}, seg.docs)
+        seg.codeRendered = pipe(pygmentizePath, []string{"-l", "go", "-f", "html"}, seg.code+"  ")
     }
 
     // Print HTML header.
@@ -133,10 +145,9 @@ func main() {
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-eqiv="content-type"
-          content="text/html;charset=utf-8">
+    <meta http-eqiv="content-type" content="text/html;charset=utf-8">
     <title>%s</title>
-    <link rel=stylesheet href="../style/lit.css">
+    <link rel=stylesheet href="http://jashkenas.github.com/docco/resources/docco.css">
   </head>
   <body>
     <div id="container">
@@ -153,7 +164,7 @@ func main() {
     // Print HTML docs/code segments.
     for _, seg := range segs {
         fmt.Printf(
-          `<tr>
+            `<tr>
              <td class=docs>%s</td>
              <td class=code>%s</td>
            </tr>`, seg.docsRendered, seg.codeRendered)
