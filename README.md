@@ -17,7 +17,7 @@ $ go get github.com/mmcgrana/golit
 ### Usage
 
 ```console
-$ golit input.go > output.html
+$ golit input.go title > output.html
 ```
 
 

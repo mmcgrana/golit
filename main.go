@@ -27,7 +27,7 @@ import (
 
 // golit takes exactly one argument: the path to a Go source file.
 // It writes the compiled HTML on stdout.
-var usage = "usage: golit input.go > output.html"
+var usage = "usage: golit input.go title > output.html"
 
 // ### Helpers
 
@@ -60,8 +60,8 @@ func pipe(bin string, arg []string, src string) string {
 // Recognize doc lines, extract their comment prefixes.
 var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
 
-// Recognize title prefixes, for titling web page.
-var titlePat = regexp.MustCompile("^\\/\\/\\s##\\s")
+// Recognize header comment lines specially.
+// var headerPat = regexp.MustCompile("^\\/\\/\\s#+\\s")
 
 // We'll break the code into `{docs, code}` pairs, and then render
 // those text segments before including them in the HTML doc.
@@ -70,11 +70,13 @@ type seg struct {
 }
 
 func main() {
-    // Accept exactly 1 argument.
-    if len(os.Args) != 2 {
+    // Accept exactly 2 argument, the source path and page title.
+    if len(os.Args) != 3 {
         fmt.Fprintln(os.Stderr, usage)
         os.Exit(1)
     }
+	sourcePath := os.Args[1]
+	title := os.Args[2]
 
     // Ensure that we have `markdown` and `pygmentize` binaries,
     // remember their paths.
@@ -84,20 +86,16 @@ func main() {
     check(err)
 
     // Read the source file in, split into lines.
-    srcBytes, err := ioutil.ReadFile(os.Args[1])
+    srcBytes, err := ioutil.ReadFile(sourcePath)
     check(err)
     lines := strings.Split(string(srcBytes), "\n")
 
     // Group lines into docs/code segments. First,
     // special case the header to go in its own segment.
-    headerDoc := docsPat.ReplaceAllString(lines[0], "")
     segs := []*seg{}
-    segs = append(segs, &seg{code: "", docs: headerDoc})
-
-    // Then handle the remaining as code/doc pairs.
     segs = append(segs, &seg{code: "", docs: ""})
     last := ""
-    for _, line := range lines[2:] {
+    for _, line := range lines {
         head := segs[len(segs)-1]
         docsMatch := docsPat.MatchString(line)
         emptyMatch := line == ""
@@ -134,7 +132,6 @@ func main() {
     }
 
     // Print HTML header.
-    title := titlePat.ReplaceAllString(lines[0], "")
     fmt.Printf(`
 <!DOCTYPE html>
 <html>
