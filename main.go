@@ -96,8 +96,8 @@ func main() {
     // therefore never directly adjacent to any code. Second, we need
     // to correctly start new segments on certain code/doc boundries
     // but not on others. In order to handle this later aspect we'll
-    // refer to some state about the previous line and segment in
-    // deciding to handle the one being processed.
+    // refer to some state about the previous line and segment when
+    // deciding to handle the current one being processed.
     segs := []*seg{}
     segs = append(segs, &seg{code: "", docs: ""})
     lastSeen := ""
@@ -113,8 +113,8 @@ func main() {
         newCode := (lastSeen != "code") && lastSeg.code != ""
         // Header line - strip out comment indicator and ensure a
         // dedicated segment for the header, indpendent of potential
-        // surrounding docs. Note that here an in the other cases
-        // below we coalesced empty lines into the type of the previous
+        // surrounding docs. Note that here - as in the other cases
+        // below - we coalesced empty lines into the type of the previous
         // line.
         if headerMatch || (emptyMatch && lastHeader) {
             trimmed := docsPat.ReplaceAllString(line, "")
