@@ -61,7 +61,7 @@ func pipe(bin string, arg []string, src string) string {
 var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
 
 // Recognize header comment lines specially.
-// var headerPat = regexp.MustCompile("^\\/\\/\\s#+\\s")
+var headerPat = regexp.MustCompile("^\\/\\/\\s#+\\s")
 
 // We'll break the code into `{docs, code}` pairs, and then render
 // those text segments before including them in the HTML doc.
@@ -75,8 +75,8 @@ func main() {
         fmt.Fprintln(os.Stderr, usage)
         os.Exit(1)
     }
-	sourcePath := os.Args[1]
-	title := os.Args[2]
+    sourcePath := os.Args[1]
+    title := os.Args[2]
 
     // Ensure that we have `markdown` and `pygmentize` binaries,
     // remember their paths.
@@ -95,20 +95,34 @@ func main() {
     segs = append(segs, &seg{code: "", docs: ""})
     lastSeen := ""
     for _, line := range lines {
-        lastSeg := segs[len(segs)-1]
+        headerMatch := headerPat.MatchString(line)
         docsMatch := docsPat.MatchString(line)
         emptyMatch := line == ""
+        lastSeg := segs[len(segs)-1]
+        lastHeader := lastSeen == "header"
         lastDocs := lastSeen == "docs"
-        newDocs := (lastSeen == "code") && lastSeg.docs != ""
-        newCode := (lastSeen == "docs") && lastSeg.code != ""
-        // Docs line - strip out comment indicator.
-        if docsMatch || (emptyMatch && lastDocs) {
-            trimed := docsPat.ReplaceAllString(line, "")
-            if newDocs {
-                newSeg := seg{docs: trimed, code: ""}
+        newHeader := (lastSeen != "header")
+        newDocs := (lastSeen != "docs") && lastSeg.docs != ""
+        newCode := (lastSeen != "code") && lastSeg.code != ""
+        // Header line - strip out comment indicator and ensure a
+        // dedicated segment for the header, indpendent of potential
+        // surrounding docs.
+        if headerMatch || (emptyMatch && lastHeader) {
+            trimmed := docsPat.ReplaceAllString(line, "")
+            if newHeader {
+                newSeg := seg{docs: trimmed, code: ""}
                 segs = append(segs, &newSeg)
             } else {
-                lastSeg.docs = lastSeg.docs + "\n" + trimed
+                lastSeg.docs = lastSeg.docs + "\n" + trimmed
+            }
+            // Docs line - strip out comment indicator.
+        } else if docsMatch || (emptyMatch && lastDocs) {
+            trimmed := docsPat.ReplaceAllString(line, "")
+            if newDocs {
+                newSeg := seg{docs: trimmed, code: ""}
+                segs = append(segs, &newSeg)
+            } else {
+                lastSeg.docs = lastSeg.docs + "\n" + trimmed
             }
             lastSeen = "docs"
             // Code line - preserve all whitespace.
