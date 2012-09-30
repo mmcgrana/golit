@@ -55,7 +55,7 @@ func pipe(bin string, arg []string, src string) string {
     return string(bytes)
 }
 
-// ### Rendering
+// ### Processing
 
 // Recognize doc lines, extract their comment prefixes.
 var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
@@ -90,7 +90,14 @@ func main() {
     check(err)
     lines := strings.Split(string(srcBytes), "\n")
 
-    // Group lines into docs/code segments.
+    // Group lines into docs/code segments. There are two tricky
+    // aspects to this. First, we want to treat header comments
+    // sepcially so that they are always in their own segment and
+    // therefore never directly adjacent to any code. Second, we need
+    // to correctly start new segments on certain code/doc boundries
+    // but not on others. In order to handle this later aspect we'll
+    // refer to some state about the previous line and segment in
+    // deciding to handle the one being processed.
     segs := []*seg{}
     segs = append(segs, &seg{code: "", docs: ""})
     lastSeen := ""
@@ -106,7 +113,9 @@ func main() {
         newCode := (lastSeen != "code") && lastSeg.code != ""
         // Header line - strip out comment indicator and ensure a
         // dedicated segment for the header, indpendent of potential
-        // surrounding docs.
+        // surrounding docs. Note that here an in the other cases
+        // below we coalesced empty lines into the type of the previous
+        // line.
         if headerMatch || (emptyMatch && lastHeader) {
             trimmed := docsPat.ReplaceAllString(line, "")
             if newHeader {
@@ -115,7 +124,7 @@ func main() {
             } else {
                 lastSeg.docs = lastSeg.docs + "\n" + trimmed
             }
-            // Docs line - strip out comment indicator.
+        // Docs line - strip out comment indicator.
         } else if docsMatch || (emptyMatch && lastDocs) {
             trimmed := docsPat.ReplaceAllString(line, "")
             if newDocs {
@@ -125,7 +134,7 @@ func main() {
                 lastSeg.docs = lastSeg.docs + "\n" + trimmed
             }
             lastSeen = "docs"
-            // Code line - preserve all whitespace.
+        // Code line - preserve all whitespace.
         } else {
             if newCode {
                 newSeg := seg{docs: "", code: line}
@@ -138,11 +147,13 @@ func main() {
     }
 
     // Render docs via `markdown` and code via `pygmentize` in each
-    // segment.
+    // segment, using our `pipe` helper.
     for _, seg := range segs {
         seg.docsRendered = pipe(markdownPath, []string{}, seg.docs)
         seg.codeRendered = pipe(pygmentizePath, []string{"-l", "go", "-f", "html"}, seg.code+"  ")
     }
+
+// ### Rendering
 
     // Print HTML header.
     fmt.Printf(`
