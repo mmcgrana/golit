@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -e
-
-go get
-golit main.go golit > /tmp/index.html
-git checkout gh-pages
-git commit -am "update docs"
-git push github gh-pages
