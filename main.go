@@ -124,7 +124,7 @@ func main() {
             } else {
                 lastSeg.docs = lastSeg.docs + "\n" + trimmed
             }
-        // Docs line - strip out comment indicator.
+            // Docs line - strip out comment indicator.
         } else if docsMatch || (emptyMatch && lastDocs) {
             trimmed := docsPat.ReplaceAllString(line, "")
             if newDocs {
@@ -134,7 +134,7 @@ func main() {
                 lastSeg.docs = lastSeg.docs + "\n" + trimmed
             }
             lastSeen = "docs"
-        // Code line - preserve all whitespace.
+            // Code line - preserve all whitespace.
         } else {
             if newCode {
                 newSeg := seg{docs: "", code: line}
@@ -153,7 +153,7 @@ func main() {
         seg.codeRendered = pipe(pygmentizePath, []string{"-l", "go", "-f", "html"}, seg.code+"  ")
     }
 
-// ### Rendering
+    // ### Rendering
 
     // Print HTML header.
     fmt.Printf(`
