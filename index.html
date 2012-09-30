@@ -107,7 +107,7 @@ general helper for handling both cases.</p>
 </pre></div>
 </td>
            </tr><tr>
-             <td class=docs><h3>Rendering</h3>
+             <td class=docs><h3>Processing</h3>
 </td>
              <td class=code><div class="highlight"><pre>  
 </pre></div>
@@ -122,7 +122,7 @@ general helper for handling both cases.</p>
            </tr><tr>
              <td class=docs><p>Recognize header comment lines specially.</p>
 </td>
-             <td class=code><div class="highlight"><pre><span class="k">var</span> <span class="n">headerPat</span> <span class="p">=</span> <span class="n">regexp</span><span class="p">.</span><span class="n">MustCompile</span><span class="p">(</span><span class="s">&quot;^\\/\\/\\s#+\\s&quot;</span><span class="p">)</span>
+             <td class=code><div class="highlight"><pre><span class="k">var</span> <span class="n">headerPat</span> <span class="p">=</span> <span class="n">regexp</span><span class="p">.</span><span class="n">MustCompile</span><span class="p">(</span><span class="s">&quot;^^\\s*\\/\\/\\s#+\\s&quot;</span><span class="p">)</span>
   
 </pre></div>
 </td>
@@ -170,7 +170,14 @@ remember their paths.</p>
 </pre></div>
 </td>
            </tr><tr>
-             <td class=docs><p>Group lines into docs/code segments.</p>
+             <td class=docs><p>Group lines into docs/code segments. There are two tricky
+aspects to this. First, we want to treat header comments
+sepcially so that they are always in their own segment and
+therefore never directly adjacent to any code. Second, we need
+to correctly start new segments on certain code/doc boundries
+but not on others. In order to handle this later aspect we'll
+refer to some state about the previous line and segment when
+deciding to handle the current one being processed.</p>
 </td>
              <td class=code><div class="highlight"><pre>    <span class="n">segs</span> <span class="p">:=</span> <span class="p">[]*</span><span class="n">seg</span><span class="p">{}</span>
     <span class="n">segs</span> <span class="p">=</span> <span class="n">append</span><span class="p">(</span><span class="n">segs</span><span class="p">,</span> <span class="p">&amp;</span><span class="n">seg</span><span class="p">{</span><span class="n">code</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">docs</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">})</span>
@@ -190,7 +197,9 @@ remember their paths.</p>
            </tr><tr>
              <td class=docs><p>Header line - strip out comment indicator and ensure a
 dedicated segment for the header, indpendent of potential
-surrounding docs.</p>
+surrounding docs. Note that here - as in the other cases
+below - we coalesced empty lines into the type of the previous
+line.</p>
 </td>
              <td class=code><div class="highlight"><pre>        <span class="k">if</span> <span class="n">headerMatch</span> <span class="p">||</span> <span class="p">(</span><span class="n">emptyMatch</span> <span class="p">&amp;&amp;</span> <span class="n">lastHeader</span><span class="p">)</span> <span class="p">{</span>
             <span class="n">trimmed</span> <span class="p">:=</span> <span class="n">docsPat</span><span class="p">.</span><span class="n">ReplaceAllString</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
@@ -234,13 +243,19 @@ surrounding docs.</p>
 </td>
            </tr><tr>
              <td class=docs><p>Render docs via <code>markdown</code> and code via <code>pygmentize</code> in each
-segment.</p>
+segment, using our <code>pipe</code> helper.</p>
 </td>
              <td class=code><div class="highlight"><pre>    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">seg</span> <span class="p">:=</span> <span class="k">range</span> <span class="n">segs</span> <span class="p">{</span>
         <span class="n">seg</span><span class="p">.</span><span class="n">docsRendered</span> <span class="p">=</span> <span class="n">pipe</span><span class="p">(</span><span class="n">markdownPath</span><span class="p">,</span> <span class="p">[]</span><span class="nb">string</span><span class="p">{},</span> <span class="n">seg</span><span class="p">.</span><span class="n">docs</span><span class="p">)</span>
         <span class="n">seg</span><span class="p">.</span><span class="n">codeRendered</span> <span class="p">=</span> <span class="n">pipe</span><span class="p">(</span><span class="n">pygmentizePath</span><span class="p">,</span> <span class="p">[]</span><span class="nb">string</span><span class="p">{</span><span class="s">&quot;-l&quot;</span><span class="p">,</span> <span class="s">&quot;go&quot;</span><span class="p">,</span> <span class="s">&quot;-f&quot;</span><span class="p">,</span> <span class="s">&quot;html&quot;</span><span class="p">},</span> <span class="n">seg</span><span class="p">.</span><span class="n">code</span><span class="p">+</span><span class="s">&quot;  &quot;</span><span class="p">)</span>
     <span class="p">}</span>
   
+</pre></div>
+</td>
+           </tr><tr>
+             <td class=docs><h3>Rendering</h3>
+</td>
+             <td class=code><div class="highlight"><pre>  
 </pre></div>
 </td>
            </tr><tr>
