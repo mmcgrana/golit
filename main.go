@@ -93,14 +93,14 @@ func main() {
     // Group lines into docs/code segments.
     segs := []*seg{}
     segs = append(segs, &seg{code: "", docs: ""})
-    last := ""
+    lastSeen := ""
     for _, line := range lines {
-        head := segs[len(segs)-1]
+        lastSeg := segs[len(segs)-1]
         docsMatch := docsPat.MatchString(line)
         emptyMatch := line == ""
-        lastDocs := last == "docs"
-        newDocs := (last == "code") && head.docs != ""
-        newCode := (last == "docs") && head.code != ""
+        lastDocs := lastSeen == "docs"
+        newDocs := (lastSeen == "code") && lastSeg.docs != ""
+        newCode := (lastSeen == "docs") && lastSeg.code != ""
         // Docs line - strip out comment indicator.
         if docsMatch || (emptyMatch && lastDocs) {
             trimed := docsPat.ReplaceAllString(line, "")
@@ -108,18 +108,18 @@ func main() {
                 newSeg := seg{docs: trimed, code: ""}
                 segs = append(segs, &newSeg)
             } else {
-                head.docs = head.docs + "\n" + trimed
+                lastSeg.docs = lastSeg.docs + "\n" + trimed
             }
-            last = "docs"
+            lastSeen = "docs"
             // Code line - preserve all whitespace.
         } else {
             if newCode {
                 newSeg := seg{docs: "", code: line}
                 segs = append(segs, &newSeg)
             } else {
-                head.code = head.code + "\n" + line
+                lastSeg.code = lastSeg.code + "\n" + line
             }
-            last = "code"
+            lastSeen = "code"
         }
     }
 
