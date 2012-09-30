@@ -5,5 +5,6 @@ set -e
 go get
 golit main.go golit > /tmp/index.html
 git checkout gh-pages
+cp /tmp/index.html .
 git commit -am "update docs"
 git push github gh-pages
