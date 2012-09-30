@@ -1,7 +1,7 @@
 // ## golit
 
 // **golit** generates literate-programming-style HTML documentation
-// for a Go source file. It produces HTML with comments alongside your
+// from a Go source file. It produces HTML with comments alongside your
 // code. Comments are parsed through [Markdown](http://daringfireball.net/projects/markdown/syntax)
 // and code highlighted with [Pygments](http://pygments.org/).
 
@@ -23,16 +23,12 @@ import (
     "strings"
 )
 
-// ### Usage
-//
 // `golit` takes exactly one argument: the path to a Go source file.
 // It writes the compiled HTML on stdout.
 var usage = "usage: golit input.go > output.html"
 
-// ### Helpers
-//
-// Panic on non-nil errors. We'll call this after every error-returning
-// function.
+// Panic on non-nil errors. We'll call this after error-returning
+// functions.
 func check(err error) {
     if err != nil {
         panic(err)
@@ -44,25 +40,17 @@ func check(err error) {
 // general helper for handling both cases.
 func pipe(bin string, arg []string, src string) string {
     cmd := exec.Command(bin, arg...)
-    in, err := cmd.StdinPipe()
-    check(err)
-    out, err := cmd.StdoutPipe()
-    check(err)
-    err = cmd.Start()
-    check(err)
+    in, _ := cmd.StdinPipe()
+    out, _ := cmd.StdoutPipe()
+    cmd.Start()
     in.Write([]byte(src))
-    check(err)
-    err = in.Close()
-    check(err)
-    bytes, err := ioutil.ReadAll(out)
-    check(err)
-    err = cmd.Wait()
+    in.Close()
+    bytes, _ := ioutil.ReadAll(out)
+    err := cmd.Wait()
     check(err)
     return string(bytes)
 }
 
-// ### Rendering
-//
 // Recognize doc lines, extract their comment prefixes.
 var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
 
