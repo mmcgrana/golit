@@ -31,3 +31,9 @@ $ vi ...
 $ go get
 $ golit ...
 ```
+
+### Update Docs
+
+```console
+$ ./doc
+```
