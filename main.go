@@ -23,9 +23,13 @@ import (
     "strings"
 )
 
-// `golit` takes exactly one argument: the path to a Go source file.
+// ### Usage
+
+// golit takes exactly one argument: the path to a Go source file.
 // It writes the compiled HTML on stdout.
 var usage = "usage: golit input.go > output.html"
+
+// ### Helpers
 
 // Panic on non-nil errors. We'll call this after error-returning
 // functions.
@@ -50,6 +54,8 @@ func pipe(bin string, arg []string, src string) string {
     check(err)
     return string(bytes)
 }
+
+// ### Rendering
 
 // Recognize doc lines, extract their comment prefixes.
 var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
