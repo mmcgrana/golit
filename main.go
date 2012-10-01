@@ -62,7 +62,7 @@ func pipe(bin string, arg []string, src string) string {
 var docsPat = regexp.MustCompile("^\\s*\\/\\/\\s")
 
 // Recognize header comment lines specially.
-var headerPat = regexp.MustCompile("^^\\s*\\/\\/\\s#+\\s")
+var headerPat = regexp.MustCompile("^\\s*\\/\\/\\s#+\\s")
 
 // We'll break the code into `{docs, code}` pairs, and then render
 // those text segments before including them in the HTML doc.
