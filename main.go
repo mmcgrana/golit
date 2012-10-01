@@ -109,7 +109,7 @@ func main() {
         lastSeg := segs[len(segs)-1]
         lastHeader := lastSeen == "header"
         lastDocs := lastSeen == "docs"
-        newHeader := (lastSeen != "header")
+        newHeader := (lastSeen != "header") && lastSeg.docs != ""
         newDocs := (lastSeen != "docs") && lastSeg.docs != ""
         newCode := (lastSeen != "code") && lastSeg.code != ""
         // Header line - strip out comment indicator and ensure a
@@ -125,6 +125,7 @@ func main() {
             } else {
                 lastSeg.docs = lastSeg.docs + "\n" + trimmed
             }
+			lastSeen = "header"
             // Docs line - strip out comment indicator.
         } else if docsMatch || (emptyMatch && lastDocs) {
             trimmed := docsPat.ReplaceAllString(line, "")
