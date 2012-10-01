@@ -17,12 +17,6 @@
           </tr>
         </thead>
         <tbody><tr>
-             <td class=docs>
-</td>
-             <td class=code><div class="highlight"><pre>  
-</pre></div>
-</td>
-           </tr><tr>
              <td class=docs><h2>golit</h2>
 </td>
              <td class=code><div class="highlight"><pre>  
@@ -190,7 +184,7 @@ deciding to handle the current one being processed.</p>
         <span class="n">lastSeg</span> <span class="p">:=</span> <span class="n">segs</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">segs</span><span class="p">)-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">lastHeader</span> <span class="p">:=</span> <span class="n">lastSeen</span> <span class="p">==</span> <span class="s">&quot;header&quot;</span>
         <span class="n">lastDocs</span> <span class="p">:=</span> <span class="n">lastSeen</span> <span class="p">==</span> <span class="s">&quot;docs&quot;</span>
-        <span class="n">newHeader</span> <span class="p">:=</span> <span class="p">(</span><span class="n">lastSeen</span> <span class="p">!=</span> <span class="s">&quot;header&quot;</span><span class="p">)</span>
+        <span class="n">newHeader</span> <span class="p">:=</span> <span class="p">(</span><span class="n">lastSeen</span> <span class="p">!=</span> <span class="s">&quot;header&quot;</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="n">lastSeg</span><span class="p">.</span><span class="n">docs</span> <span class="p">!=</span> <span class="s">&quot;&quot;</span>
         <span class="n">newDocs</span> <span class="p">:=</span> <span class="p">(</span><span class="n">lastSeen</span> <span class="p">!=</span> <span class="s">&quot;docs&quot;</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="n">lastSeg</span><span class="p">.</span><span class="n">docs</span> <span class="p">!=</span> <span class="s">&quot;&quot;</span>
         <span class="n">newCode</span> <span class="p">:=</span> <span class="p">(</span><span class="n">lastSeen</span> <span class="p">!=</span> <span class="s">&quot;code&quot;</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="n">lastSeg</span><span class="p">.</span><span class="n">code</span> <span class="p">!=</span> <span class="s">&quot;&quot;</span>  
 </pre></div>
@@ -209,7 +203,8 @@ line.</p>
                 <span class="n">segs</span> <span class="p">=</span> <span class="n">append</span><span class="p">(</span><span class="n">segs</span><span class="p">,</span> <span class="p">&amp;</span><span class="n">newSeg</span><span class="p">)</span>
             <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
                 <span class="n">lastSeg</span><span class="p">.</span><span class="n">docs</span> <span class="p">=</span> <span class="n">lastSeg</span><span class="p">.</span><span class="n">docs</span> <span class="p">+</span> <span class="s">&quot;\n&quot;</span> <span class="p">+</span> <span class="n">trimmed</span>
-            <span class="p">}</span>  
+            <span class="p">}</span>
+			<span class="n">lastSeen</span> <span class="p">=</span> <span class="s">&quot;header&quot;</span>  
 </pre></div>
 </td>
            </tr><tr>
