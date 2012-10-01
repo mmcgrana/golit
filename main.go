@@ -25,8 +25,9 @@ import (
 
 // ### Usage
 
-// golit takes exactly one argument: the path to a Go source file.
-// It writes the compiled HTML on stdout.
+// golit takes exactly two arguments: the path to a Go source file and
+// the title for the resulting HTML page. It writes the compiled HTML
+// on stdout.
 var usage = "usage: golit input.go title > output.html"
 
 // ### Helpers
